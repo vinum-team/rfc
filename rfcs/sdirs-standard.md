@@ -15,6 +15,7 @@ The least interesting part of SDIR, is the function responsible for launching up
 * Cancel all CTasks of X
 * Call an `onUpdate` method of X's owner, if one exists *(a method must not exist if the constructing owner of X doesn't have the ability to self-calculate such as Values)*
 * Repeat on the dependents of X.
+* Disconnect all relations between dependents of X and X.
 
 We can also conclude more points from the previous spec, which are:
 * A CTask is a table that has a `cancel` method.
@@ -41,6 +42,20 @@ type RNode = {
 }
 ```
 
+Another important feature to implement is the ability to alert an RNode if it got a new dependent. To implement this, an optional `onDependentAdded` method must be added to to RNode, and an internal `add_dependent` function must be implemented.
+
+As such, the type of RNode should be something like this:
+```lua
+type RNode = {
+    owner: Owner,
+	dependents: {[RNode]: boolean},
+	cancelableTasks: { CTask },
+    onDependentAdded: ((self: RNode, dependent: RNode) -> ())?
+}
+```
+
+Finally, its important to note that due to d
+ynamic dependencies behavior (the clearing of relations between dependencies and their dependents), this method could be called everytime a dependent updates, as such, the method should be optional and `add_dependent` should be able to determine if it exists or not.
 ## Drawbacks
 There are no drawbacks.
 
