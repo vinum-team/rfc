@@ -56,6 +56,7 @@ type RNode = {
 
 Finally, its important to note that due to d
 ynamic dependencies behavior (the clearing of relations between dependencies and their dependents), this method could be called everytime a dependent updates, as such, the method should be optional and `add_dependent` should be able to determine if it exists or not.
+
 ## Drawbacks
 There are no drawbacks.
 
