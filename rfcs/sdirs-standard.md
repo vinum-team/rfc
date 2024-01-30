@@ -10,22 +10,10 @@ While the current system works, it *could* be vulernable to various edge cases d
 To solve all of this, SDIRS is introduced.
 
 ## Design
-The least interesting part of SDIR, is the function responsible for launching updates which should do the following in this order (the algorithm responsible for determining what dependents do update is not important to this RFC):
-* Get a dependent named X
-* Cancel all CTasks of X
-* Call an `onUpdate` method of X's owner, if one exists *(a method must not exist if the constructing owner of X doesn't have the ability to self-calculate such as Values)*
-* Repeat on the dependents of X.
-* Disconnect all relations between dependents of X and X.
+This RFC's Standard Disintegrated Internal Reactive System *(SDIRS)* consists of various components that have a peer-to-peer relation or a dependency-to-dependent relation, each one documented separately.
 
-We can also conclude more points from the previous spec, which are:
-* A CTask is a table that has a `cancel` method.
-* X is a struct whose has an owner that has a `onUpdate` method.
-
-Furthermore, we can setup an offical definition for X's type:
-* X is a normal table, not an object, not a metatable.
-* X's Owner is *something* that *can* but *not must* has a `onUpdate` method.
-
-As such, the following Luau types can be formalized:
+### Object Types
+This is the following spec for Luau types.
 ```lua
 type CTask = {
     cancel: (self: CTask) -> (),
@@ -41,22 +29,33 @@ type RNode = {
     owner: Owner,
     dependents: {[RNode]: boolean},
     cancelableTasks: { CTask },
-}
-```
-
-Another important feature to implement is the ability to alert an RNode if it got a new dependent. To implement this, an optional `onDependentAdded` method must be added to to RNode, and an internal `add_dependent` function must be implemented.
-
-As such, the type of RNode should be something like this:
-```lua
-type RNode = {
-    owner: Owner,
-    dependents: {[RNode]: boolean},
-    cancelableTasks: { CTask },
     onDependentAdded: ((self: RNode, dependent: RNode) -> ())?
 }
 ```
+* CTask: A *table* named X *(not required to meet any Specs or Paradigms such as OOP)* that must contain a `cancel` function that accepts X as its first argument, and is allowed to contain other data.
+* Owner: A *table* named O that *could* have a `onUpdate` function that takes O as its first argument, and is free to contain other data. 
+* RNode: A *struct* named R that must have an owner (Owner), dependents (a map of RNodes), cancelableTasks (an array of CTask), and optionally an `onDependentAdded` method. Unlike both CTask and Owner, RNode is completely Concrete and isn't allowed to house other undetermined data.
 
-Finally, its important to note that due to dynamic dependencies behavior (the clearing of relations between dependencies and their dependents), this method could be called everytime a dependent updates, as such, the method should be optional and `add_dependent` should be able to determine if it exists or not.
+### Update Process
+This is the following spec for the update process *(it *MUST* be noted that this is a spec for the goals that are needed to be met, rather than concrete steps each implementation of SDIRS need to meet)*
+
+The following conditions must be met in *order*:
+* Get a RNode named X
+* Loop through the items of X's cancelableTasks and `cancel` them.
+* The map `dependents` field of X holds moves to a temporary variable named `prevDependents` and the field itself holds a new empty map.
+* Get X's Owner and call its onUpdate method, if one exists. *(An owner must not have an onUpdate method if it doesn't concern itself about the update process, like Values. For example, the dependents of a Value will be the ones concerning themseleves with keeping the connection with the Value, not the other way around)*
+* Repeat on the `prevDependents`
+
+Those requirements ensure that:
+* The dependents of a RNode are always dynamic. 
+* Previous CTasks are cleaned up before new possible ones are spawned.
+
+It should also be important to note that the Update Process (UP) doesn't concern itself with the reconnecting between dependencies and their dependents, as this responsibility is usually hold by Owners. For example, an Owner of a RNode that is responsible for watching changes should reconnect with the watched node during the Owner's `onUpdate`. *(fun fact: the act of watching a "state" in Vinum simply translates to watchedState's RNode being the only dependency of the watcher's Rnode)*
+
+
+### Dependent Injection
+Additionally, SDIRS isn't concerned with exacty how you add dependents to dependencies or how many layers of complex behavior. The only spec SDIRS is concerned with is that when adding a new dependent, one should add the dependent ***and*** call the `onDependentAdded` of the dependency. 
+
 
 ## Drawbacks
 There are no drawbacks.
