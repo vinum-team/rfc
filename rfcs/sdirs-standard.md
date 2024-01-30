@@ -28,17 +28,19 @@ Furthermore, we can setup an offical definition for X's type:
 As such, the following Luau types can be formalized:
 ```lua
 type CTask = {
-    cancel: (self: CTask) -> ()
+    cancel: (self: CTask) -> (),
+    [any]: any
 }
 
 type Owner = {
-    onUpdate: ((self: Owner) -> ())?
+    onUpdate: ((self: Owner) -> ())?,
+    [any]: any
 }
 
 type RNode = {
     owner: Owner,
-	dependents: {[RNode]: boolean},
-	cancelableTasks: { CTask },
+    dependents: {[RNode]: boolean},
+    cancelableTasks: { CTask },
 }
 ```
 
@@ -48,14 +50,13 @@ As such, the type of RNode should be something like this:
 ```lua
 type RNode = {
     owner: Owner,
-	dependents: {[RNode]: boolean},
-	cancelableTasks: { CTask },
+    dependents: {[RNode]: boolean},
+    cancelableTasks: { CTask },
     onDependentAdded: ((self: RNode, dependent: RNode) -> ())?
 }
 ```
 
-Finally, its important to note that due to d
-ynamic dependencies behavior (the clearing of relations between dependencies and their dependents), this method could be called everytime a dependent updates, as such, the method should be optional and `add_dependent` should be able to determine if it exists or not.
+Finally, its important to note that due to dynamic dependencies behavior (the clearing of relations between dependencies and their dependents), this method could be called everytime a dependent updates, as such, the method should be optional and `add_dependent` should be able to determine if it exists or not.
 
 ## Drawbacks
 There are no drawbacks.
