@@ -54,7 +54,7 @@ It should also be important to note that the Update Process (UP) doesn't concern
 
 
 ### Dependent Injection
-Additionally, SDIRS isn't concerned with exacty how you add dependents to dependencies or how many layers of complex behavior. The only spec SDIRS is concerned with is that when adding a new dependent, one should add the dependent ***and*** call the `onDependentAdded` of the dependency. 
+Additionally, SDIRS isn't concerned with how you add dependents to dependencies or how many layers of complex behavior are present. The only part SDIRS is concerned with is that when adding a new dependent, one should add the dependent to the dependency's `dependents` ***and*** call the `onDependentAdded` of the dependency. 
 
 
 ## Drawbacks
